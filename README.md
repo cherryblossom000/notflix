@@ -1,12 +1,13 @@
 <h1 align="center">NOTFLIX</h1>
 <p align="center">f@#k netflix use notflix a tool which search magnet links and stream it with webtorrent</p>
+<p align="center">This is a fork for WSL (Windows subsystem for linux)</p>
 
 ##
 <p align="center">
 <img src="./preview.gif" alt="Video Preview" width="500px">
 </p>
 
-> Watch my video on this - [bugswriter's notflix](https://youtu.be/RFJCL9C46Mc)
+> Watch bugswriters video - [bugswriter's notflix](https://youtu.be/RFJCL9C46Mc)
 
 ### How does this work?
 
@@ -16,7 +17,8 @@ For scraping, the script uses simple gnu utils like sed, awk, paste, cut.
 
 ## Requirements
 
-* [webtorrent](https://webtorrent.io/) - A tool to stream torrent. `sudo npm install webtorrent -g`
+* [webtorrent Desktop](https://webtorrent.io/desktop) - A tool to stream torrent. install from https://webtorrent.io/desktop. ensure it is on windows path.
+* [fzf](https://github.com/junegunn/fzf) - a cli fuzzy finder. I recommend installing via git. When i install via package managers .fzf/install script does not get run.
 
 ## Installation
 
@@ -24,7 +26,7 @@ For scraping, the script uses simple gnu utils like sed, awk, paste, cut.
 cURL **notflix** to your **$PATH** and give execute permissions.
 
 ```sh
-$ sudo curl -sL "https://raw.githubusercontent.com/Bugswriter/notflix/master/notflix" -o /usr/local/bin/notflix
+$ sudo curl -sL "https://raw.githubusercontent.com/myrionsc/notflix/master/notflix" -o /usr/local/bin/notflix
 $ sudo chmod +x /usr/local/bin/notflix
 ```
 - To update, just do `curl` again, no need to `chmod` anymore.

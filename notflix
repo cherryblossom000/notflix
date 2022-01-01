@@ -5,19 +5,18 @@
 mkdir -p $HOME/.cache/notflix
 
 menu="fzf"
-menu="dmenu -i -l 25"
 baseurl="https://1337x.wtf"
 cachedir="$HOME/.cache/notflix"
 
 if [ -z $1 ]; then
-  query=$(dmenu -p "Search Torrent: " <&-)
+  echo "must enter search term. eg: wind river"
+  exit
 else
-  query=$1
+  query="$@"
 fi
 
-query="$(sed 's/ /+/g' <<<$query)"
+query="$(echo $query | sed 's/ /+/g')"
 
-#curl -s https://1337x.to/category-search/$query/Movies/1/ > $cachedir/tmp.html
 curl -s $baseurl/search/$query/1/ > $cachedir/tmp.html
 
 # Get Titles
@@ -26,7 +25,7 @@ grep -o '<a href="/torrent/.*</a>' $cachedir/tmp.html |
 
 result_count=$(wc -l $cachedir/titles.bw | awk '{print $1}')
 if [ "$result_count" -lt 1 ]; then
-  notify-send "😔 No Result found. Try again 🔴"
+  echo "😔 No Result found. Try again 🔴"
   exit 0
 fi
 
@@ -57,8 +56,7 @@ LINE=$(paste -d\   $cachedir/size.bw $cachedir/seedleech.bw $cachedir/titles.bw 
   cut -d\- -f1 |
   awk '{$1=$1; print}')
 
-
-notify-send "🔍 Searching Magnet seeds 🧲"
+echo "🔍 Searching Magnet seeds 🧲"
 url=$(head -n $LINE $cachedir/links.bw | tail -n +$LINE)
 fullURL="${baseurl}${url}/"
 
@@ -66,7 +64,8 @@ fullURL="${baseurl}${url}/"
 curl -s $fullURL > $cachedir/tmp.html
 magnet=$(grep -Po "magnet:\?xt=urn:btih:[a-zA-Z0-9]*" $cachedir/tmp.html | head -n 1) 
 
-webtorrent "$magnet" --mpv
+webtorrent.exe "$magnet"
 
 # Simple notification
-notify-send "🎥 Enjoy Watching ☺️ "
+echo "🎥 Enjoy Watching ☺️ "
+
