@@ -1,16 +1,22 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# Dependencies - webtorrent, mpv
+set -euo pipefail
+
+# Dependencies - skim or fzf, WebTorrent Desktop
 
 mkdir -p $HOME/.cache/notflix
 
-menu="fzf"
 baseurl="https://1337x.wtf"
 cachedir="$HOME/.cache/notflix"
 
-if [ -z $1 ]; then
-  echo "must enter search term. eg: wind river"
-  exit
+if command -v sk &> /dev/null; then
+  menu="sk"
+else
+  menu="fzf"
+fi
+
+if [ -z "${1-}" ]; then
+  read -p 'Search Torrent: ' query
 else
   query="$@"
 fi
@@ -62,10 +68,9 @@ fullURL="${baseurl}${url}/"
 
 # Requesting page for magnet link
 curl -s $fullURL > $cachedir/tmp.html
-magnet=$(grep -Po "magnet:\?xt=urn:btih:[a-zA-Z0-9]*" $cachedir/tmp.html | head -n 1) 
+magnet=$(grep -o 'magnet:?xt=urn:btih:[a-zA-Z0-9]*' $cachedir/tmp.html | head -n 1)
 
-webtorrent.exe "$magnet"
+open -a WebTorrent "$magnet"
 
-# Simple notification
 echo "🎥 Enjoy Watching ☺️ "
 
