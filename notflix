@@ -63,6 +63,10 @@ LINE=$(paste -d\   $cachedir/size.bw $cachedir/seedleech.bw $cachedir/titles.bw 
   awk '{$1=$1; print}')
 
 echo "🔍 Searching Magnet seeds 🧲"
+if [ -z "$LINE" ]; then
+  echo "😔 No Result selected. Exiting.. 🔴"
+  exit 0
+fi
 url=$(head -n $LINE $cachedir/links.bw | tail -n +$LINE)
 fullURL="${baseurl}${url}/"
 
@@ -73,4 +77,3 @@ magnet=$(grep -o 'magnet:?xt=urn:btih:[a-zA-Z0-9]*' $cachedir/tmp.html | head -n
 open -a WebTorrent "$magnet"
 
 echo "🎥 Enjoy Watching ☺️ "
-
