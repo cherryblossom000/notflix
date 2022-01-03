@@ -76,4 +76,4 @@ magnet=$(grep -o 'magnet:?xt=urn:btih:[a-zA-Z0-9]*' $cachedir/tmp.html | head -n
 
 open -a WebTorrent "$magnet"
 
-echo "🎥 Enjoy Watching ☺️ "
+echo "🎥 Enjoy Watching ☺️"
