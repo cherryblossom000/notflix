@@ -17,24 +17,54 @@ For scraping, the script uses simple gnu utils like sed, awk, paste, cut.
 
 ## Requirements
 
-* [WebTorrent Desktop][webtorrent-desktop] — A tool to stream torrents. Install via Homebrew
+- [WebTorrent Desktop][webtorrent-desktop] — A tool to stream torrents. Install via Homebrew
   (`brew install --cask webtorrent`) or from the [website][webtorrent-desktop].
-* [skim](https://github.com/lotabout/skim) or [fzf](https://github.com/junegunn/fzf) — a CLI fuzzy
-  finder. If both are present, skim is used.
 
 ## Installation
 
-### cURL
-cURL **notflix** to your **$PATH** and give execute permissions.
+### Nix
+
+#### Legacy
 
 ```sh
-$ sudo curl -sL "https://raw.githubusercontent.com/cherryblossom000/notflix/master/notflix" -o /usr/local/bin/notflix
-$ sudo chmod +x /usr/local/bin/notflix
+hub clone cherryblossom000/notflix
+nix-env -if notflix
 ```
-- To update, just do `curl` again, no need to `chmod` anymore.
-- To uninstall, simply remove `notflix` from your **$PATH**, for example `sudo rm -f /usr/local/bin/notflix`.
+
+##### Home Manager
+
+```sh
+nix-prefetch-url https://github.com/cherryblossom000/notflix/archive/nix.tar.gz
+```
+
+```nix
+let notflix = import (pkgs.fetchFromGitHub {
+  owner = "cherryblossom000";
+  repo = "notflix";
+  rev = "<the latest commit hash on nix branch>";
+  sha256 = "<hash from nix-prefetch-url command above>";
+});
+in # your config
+```
+
+#### Flakes
+
+```sh
+nix profile install github:cherryblossom000/notflix/nix
+```
+
+### cURL
+
+cURL **notflix** to your `$PATH` and give execute permissions.
+
+```sh
+sudo curl -sL "https://raw.githubusercontent.com/cherryblossom000/notflix/master/notflix" -o /usr/local/bin/notflix
+sudo chmod +x /usr/local/bin/notflix
+```
+- To update, just do `curl` again (no need to `chmod` again).
+- To uninstall, simply remove `notflix` from your `$PATH`, for example `sudo rm -f /usr/local/bin/notflix`.
 
 ## License
-This project is licensed under [GPL-3.0](https://raw.githubusercontent.com/Illumina/licenses/master/gpl-3.0.txt).
+This project is licensed under [GPL-3.0](./LICENSE).
 
 [webtorrent-desktop]: https://webtorrent.io/desktop

@@ -1,78 +1,78 @@
-#!/usr/bin/env bash
+set -eu
 
-set -euo pipefail
+# Dependencies - WebTorrent Desktop
 
-# Dependencies - skim or fzf, WebTorrent Desktop
+base_url="https://1337x.wtf"
+cache_dir="$HOME/.cache/notflix"
+tmp_html="$cache_dir/tmp.html"
+titles="$cache_dir/titles.bw"
+seeders_leechers="$cache_dir/seedleech.bw"
+sizes="$cache_dir/size.bw"
+links="$cache_dir/links.bw"
+tmp="$cache_dir/tmp"
 
-mkdir -p $HOME/.cache/notflix
+mkdir -p "$cache_dir"
 
-baseurl="https://1337x.wtf"
-cachedir="$HOME/.cache/notflix"
-
-if command -v sk &> /dev/null; then
-  menu="sk"
-else
-  menu="fzf"
-fi
+menu="sk"
 
 if [ -z "${1-}" ]; then
-  read -p 'Search Torrent: ' query
+  read -rp 'Search Torrent: ' query
 else
-  query="$@"
+  query="$*"
 fi
 
-query="$(echo $query | sed 's/ /+/g')"
+query="${query// /+}"
 
-curl -s $baseurl/search/$query/1/ > $cachedir/tmp.html
+curl -s "$base_url/search/$query/1/" > "$tmp_html"
 
 # Get Titles
-grep -o '<a href="/torrent/.*</a>' $cachedir/tmp.html |
-  sed 's/<[^>]*>//g' > $cachedir/titles.bw
+grep -o '<a href="/torrent/.*</a>' "$tmp_html" |
+  sed 's/<[^>]*>//g' > "$titles"
 
-result_count=$(wc -l $cachedir/titles.bw | awk '{print $1}')
+result_count=$(wc -l "$titles" | awk '{print $1}')
 if [ "$result_count" -lt 1 ]; then
   echo "😔 No Result found. Try again 🔴"
   exit 0
 fi
 
 # Seeders and Leechers
-grep -o '<td class="coll-2 seeds.*</td>\|<td class="coll-3 leeches.*</td>' $cachedir/tmp.html |
-  sed 's/<[^>]*>//g' | sed 'N;s/\n/ /' > $cachedir/seedleech.bw
+grep -o '<td class="coll-2 seeds.*</td>\|<td class="coll-3 leeches.*</td>' "$tmp_html" |
+  sed 's/<[^>]*>//g' | sed 'N;s/\n/ /' > "$seeders_leechers"
 
 # Size
-grep -o '<td class="coll-4 size.*</td>' $cachedir/tmp.html |
+grep -o '<td class="coll-4 size.*</td>' "$tmp_html" |
   sed 's/<span class="seeds">.*<\/span>//g' |
-  sed -e 's/<[^>]*>//g' > $cachedir/size.bw
+  sed -e 's/<[^>]*>//g' > "$sizes"
 
 # Links
-grep -E '/torrent/' $cachedir/tmp.html |
+grep -E '/torrent/' "$tmp_html" |
   sed -E 's#.*(/torrent/.*)/">.*/#\1#' |
-  sed 's/td>//g' > $cachedir/links.bw
+  sed 's/td>//g' > "$links"
 
 # Clearning up some data to display
-sed 's/\./ /g; s/\-/ /g' $cachedir/titles.bw |
-  sed 's/[^A-Za-z0-9 ]//g' | tr -s " " > $cachedir/tmp && mv $cachedir/tmp $cachedir/titles.bw
+sed 's/\./ /g; s/\-/ /g' "$titles" |
+  sed 's/[^A-Za-z0-9 ]//g' | tr -s " " > "$tmp" && mv "$tmp" "$titles"
 
-awk '{print NR " - ["$0"]"}' $cachedir/size.bw > $cachedir/tmp && mv $cachedir/tmp $cachedir/size.bw
-awk '{print "[S:"$1 ", L:"$2"]" }' $cachedir/seedleech.bw > $cachedir/tmp && mv $cachedir/tmp $cachedir/seedleech.bw
+awk '{print NR " - ["$0"]"}' "$sizes" > "$tmp" && mv "$tmp" "$sizes"
+awk '{print "[S:"$1 ", L:"$2"]" }' "$seeders_leechers" > "$tmp" && mv "$tmp" "$seeders_leechers"
 
 # Getting the line number
-LINE=$(paste -d\   $cachedir/size.bw $cachedir/seedleech.bw $cachedir/titles.bw |
+line=$(paste -d\   "$sizes" "$seeders_leechers" "$titles" |
   $menu |
-  cut -d\- -f1 |
+  cut -d- -f1 |
   awk '{$1=$1; print}')
 
 echo "🔍 Searching Magnet seeds 🧲"
-if [ -z "$LINE" ]; then
+if [ -z "$line" ]; then
   echo "😔 No Result selected. Exiting.. 🔴"
   exit 0
 fi
-url=$(head -n $LINE $cachedir/links.bw | tail -n +$LINE)
-fullURL="${baseurl}${url}/"
+url=$(head -n "$line" "$links" | tail -n +"$line")
+full_url="${base_url}${url}/"
 
 # Requesting page for magnet link
-curl -s $fullURL > $cachedir/tmp.html
-magnet=$(grep -o 'magnet:?xt=urn:btih:[a-zA-Z0-9]*' $cachedir/tmp.html | head -n 1)
+curl -s "$full_url" > "$tmp_html"
+magnet=$(grep -o 'magnet:?xt=urn:btih:[a-zA-Z0-9]*' "$tmp_html" | head -n 1)
 
 open -a WebTorrent "$magnet"
 
