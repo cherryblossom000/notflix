@@ -41,7 +41,7 @@ var @torrents = (
 )
 
 if (< (count $torrents) 1) {
-  echo "😔 No Result found. Try again 🔴"
+  echo '😔 No Result found. Try again 🔴'
   exit 1
 }
 
@@ -67,4 +67,4 @@ open -a WebTorrent (
   re:find &max=1 'magnet:\?xt=urn:btih:[a-zA-Z\d]+' (one)
 )[text]
 
-echo "🎥 Enjoy Watching ☺️"
+echo '🎥 Enjoy Watching ☺️'
