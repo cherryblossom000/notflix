@@ -7,7 +7,7 @@
 
     set paths = [${builtins.replaceStrings [":"] [" "] (pkgs.lib.makeBinPath [ pkgs.curlMinimal pkgs.skim ])} $@paths]
 
-    ${builtins.readFile ./notflix}
+    ${builtins.readFile ./notflix.elv}
   '';
   meta.mainProgram = name;
 }
