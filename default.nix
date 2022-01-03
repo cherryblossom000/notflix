@@ -1,5 +1,13 @@
-{ pkgs ? import <nixpkgs> {} }: pkgs.writeShellApplication {
+{ pkgs ? import <nixpkgs> {} }: pkgs.writeTextFile rec {
   name = "notflix";
-  text = builtins.readFile ./notflix;
-  runtimeInputs = with pkgs; [ coreutils curlMinimal gnugrep skim ];
+  executable = true;
+  destination = "/bin/${name}";
+  text = ''
+    #!${pkgs.elvish}${pkgs.elvish.shellPath}
+
+    set paths = [${builtins.replaceStrings [":"] [" "] (pkgs.lib.makeBinPath [ pkgs.curlMinimal pkgs.skim ])} $@paths]
+
+    ${builtins.readFile ./notflix}
+  '';
+  meta.mainProgram = name;
 }

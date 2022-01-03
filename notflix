@@ -1,79 +1,70 @@
-set -eu
-
 # Dependencies - WebTorrent Desktop
 
-base_url="https://1337x.wtf"
-cache_dir="$HOME/.cache/notflix"
-tmp_html="$cache_dir/tmp.html"
-titles="$cache_dir/titles.bw"
-seeders_leechers="$cache_dir/seedleech.bw"
-sizes="$cache_dir/size.bw"
-links="$cache_dir/links.bw"
-tmp="$cache_dir/tmp"
+use str
+use re
 
-mkdir -p "$cache_dir"
+var base-url = https://1337x.wtf
 
-menu="sk"
+var query
+if (< (count $args) 1) {
+  print 'Search Torrent: '
+  set query = (read-line)
+} else {
+  set query = (str:join ' ' $args)
+}
+set query = (str:replace ' ' + $query)
 
-if [ -z "${1-}" ]; then
-  read -rp 'Search Torrent: ' query
-else
-  query="$*"
-fi
+fn table-cell {|idx name|
+  put '<td class="coll-'$idx' '$name'">'
+}
+var regex = (str:join '\n' [
+  (table-cell 1 name)'.+?<a href="(/torrent/.+?)">(.+?)</a>.*?</td>'
+  (table-cell 2 seeds)'(.+?)</td>'
+  (table-cell 3 leeches)'(.+?)</td>'
+  '.+?'
+  (table-cell 4 'size mob-uploader')'(.+?)<'
+])
 
-query="${query// /+}"
+var @torrents = (
+  curl -s $base-url/search/$query/1/ |
+  slurp |
+  put (re:find $regex (one))[groups] |
+  each {|gs|
+    put [
+      &link=$gs[1][text]
+      &title=$gs[2][text]
+      &seeders=$gs[3][text]
+      &leechers=$gs[4][text]
+      &size=$gs[5][text]
+    ]
+  }
+)
 
-curl -s "$base_url/search/$query/1/" > "$tmp_html"
+if (< (count $torrents) 1) {
+  echo "😔  No Result found. Try again 🔴"
+  exit 1
+}
 
-# Get Titles
-grep -o '<a href="/torrent/.*</a>' "$tmp_html" |
-  sed 's/<[^>]*>//g' > "$titles"
+echo '🔍  Searching Magnet seeds 🧲'
+var selected = (
+  range 0 (count $torrents) |
+  each {|i|
+    var t = $torrents[$i]
+    echo $i' - ['$t[size]'] [S:'$t[seeders]', L:'$t[leechers]'] '(
+      put $t[title] |
+      re:replace '[\.\- ]+' ' ' (one) |
+      re:replace '[^A-Za-z\d ]' '' (one)
+    )
+  } |
+  sk |
+  str:split &max=2 ' - ' (one) |
+  take 1
+)
 
-result_count=$(wc -l "$titles" | awk '{print $1}')
-if [ "$result_count" -lt 1 ]; then
-  echo "😔 No Result found. Try again 🔴"
-  exit 0
-fi
+open -a WebTorrent (
+  curl -s $base-url$torrents[$selected][link] |
+  slurp |
+  re:find &max=1 'magnet:\?xt=urn:btih:[a-zA-Z\d]+' (one)
+)[text]
 
-# Seeders and Leechers
-grep -o '<td class="coll-2 seeds.*</td>\|<td class="coll-3 leeches.*</td>' "$tmp_html" |
-  sed 's/<[^>]*>//g' | sed 'N;s/\n/ /' > "$seeders_leechers"
-
-# Size
-grep -o '<td class="coll-4 size.*</td>' "$tmp_html" |
-  sed 's/<span class="seeds">.*<\/span>//g' |
-  sed -e 's/<[^>]*>//g' > "$sizes"
-
-# Links
-grep -E '/torrent/' "$tmp_html" |
-  sed -E 's#.*(/torrent/.*)/">.*/#\1#' |
-  sed 's/td>//g' > "$links"
-
-# Clearning up some data to display
-sed 's/\./ /g; s/\-/ /g' "$titles" |
-  sed 's/[^A-Za-z0-9 ]//g' | tr -s " " > "$tmp" && mv "$tmp" "$titles"
-
-awk '{print NR " - ["$0"]"}' "$sizes" > "$tmp" && mv "$tmp" "$sizes"
-awk '{print "[S:"$1 ", L:"$2"]" }' "$seeders_leechers" > "$tmp" && mv "$tmp" "$seeders_leechers"
-
-# Getting the line number
-line=$(paste -d\   "$sizes" "$seeders_leechers" "$titles" |
-  $menu |
-  cut -d- -f1 |
-  awk '{$1=$1; print}')
-
-echo "🔍 Searching Magnet seeds 🧲"
-if [ -z "$line" ]; then
-  echo "😔 No Result selected. Exiting.. 🔴"
-  exit 0
-fi
-url=$(head -n "$line" "$links" | tail -n +"$line")
-full_url="${base_url}${url}/"
-
-# Requesting page for magnet link
-curl -s "$full_url" > "$tmp_html"
-magnet=$(grep -o 'magnet:?xt=urn:btih:[a-zA-Z0-9]*' "$tmp_html" | head -n 1)
-
-open -a WebTorrent "$magnet"
-
-echo "🎥 Enjoy Watching ☺️ "
+echo "🎥  Enjoy Watching ☺️ "
