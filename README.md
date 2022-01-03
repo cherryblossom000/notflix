@@ -50,7 +50,7 @@ in # your config
 #### Flakes
 
 ```sh
-nix profile install github:cherryblossom000/notflix/nix
+nix profile install github:cherryblossom000/notflix/elvish
 ```
 
 ### cURL
