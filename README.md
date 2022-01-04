@@ -27,7 +27,7 @@ For scraping, the script uses simple gnu utils like sed, awk, paste, cut.
 #### Legacy
 
 ```sh
-hub clone cherryblossom000/notflix
+gh repo clone cherryblossom000/notflix -- -b nix
 nix-env -if notflix
 ```
 
@@ -58,10 +58,10 @@ nix profile install github:cherryblossom000/notflix/nix
 cURL **notflix** to your `$PATH` and give execute permissions.
 
 ```sh
-sudo curl -sL "https://raw.githubusercontent.com/cherryblossom000/notflix/master/notflix" -o /usr/local/bin/notflix
+sudo echo '#!/usr/bin/env bash' > /usr/local/bin/notflix
+sudo curl -sL "https://raw.githubusercontent.com/cherryblossom000/notflix/nix/notflix" >> /usr/local/bin/notflix
 sudo chmod +x /usr/local/bin/notflix
 ```
-- To update, just do `curl` again (no need to `chmod` again).
 - To uninstall, simply remove `notflix` from your `$PATH`, for example `sudo rm -f /usr/local/bin/notflix`.
 
 ## License
