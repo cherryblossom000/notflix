@@ -27,21 +27,21 @@ For scraping, the script uses simple gnu utils like sed, awk, paste, cut.
 #### Legacy
 
 ```sh
-hub clone cherryblossom000/notflix
+gh repo clone cherryblossom000/notflix -- -b elvish
 nix-env -if notflix
 ```
 
 ##### Home Manager
 
 ```sh
-nix-prefetch-url https://github.com/cherryblossom000/notflix/archive/nix.tar.gz
+nix-prefetch-url https://github.com/cherryblossom000/notflix/archive/elvish.tar.gz
 ```
 
 ```nix
 let notflix = import (pkgs.fetchFromGitHub {
   owner = "cherryblossom000";
   repo = "notflix";
-  rev = "<the latest commit hash on nix branch>";
+  rev = "<the latest commit hash on elvish branch>";
   sha256 = "<hash from nix-prefetch-url command above>";
 });
 in # your config
@@ -58,10 +58,10 @@ nix profile install github:cherryblossom000/notflix/elvish
 cURL **notflix** to your `$PATH` and give execute permissions.
 
 ```sh
-sudo curl -sL "https://raw.githubusercontent.com/cherryblossom000/notflix/master/notflix" -o /usr/local/bin/notflix
+sudo echo '#!/usr/bin/env elvish' > /usr/local/bin/notflix
+sudo curl -sL "https://raw.githubusercontent.com/cherryblossom000/notflix/elvish/notflix.elv" >> /usr/local/bin/notflix
 sudo chmod +x /usr/local/bin/notflix
 ```
-- To update, just do `curl` again (no need to `chmod` again).
 - To uninstall, simply remove `notflix` from your `$PATH`, for example `sudo rm -f /usr/local/bin/notflix`.
 
 ## License
