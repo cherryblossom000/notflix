@@ -11,9 +11,8 @@
 
 ### How does this work?
 
-This is a shell script. It scrapes 1337x and gets the magnet link.
+This is an [Elvish](https://elv.sh/) script. It scrapes 1337x and gets the magnet link.
 After this it uses [WebTorrent](https://webtorrent.io/) to stream the video from the magnet link.
-For scraping, the script uses simple gnu utils like sed, awk, paste, cut.
 
 ## Requirements
 
